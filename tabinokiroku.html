@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>タビノキロク プロトタイプ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    /* Reset & Base */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f7f9fa; color: #333; }
+    header { background: #005f73; color: #fff; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    nav { display: flex; gap: 1rem; }
+    nav button { background: transparent; border: none; color: rgba(255,255,255,0.7); font-size: 1rem; padding: 0.5rem; cursor: pointer; transition: color 0.2s; }
+    nav button:hover { color: #fff; }
+    nav button.active { color: #ffd60a; font-weight: 600; border-bottom: 2px solid #ffd60a; }
+    header .export button { background: #ffd60a; border: none; color: #005f73; padding: 0.5rem 0.75rem; margin-left: 0.5rem; border-radius: 4px; font-size: 0.9rem; cursor: pointer; transition: background 0.2s; }
+    header .export button:hover { background: #ffea72; }
+    .container { padding: 2rem; max-width: 1200px; margin: auto; }
+    section { background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1rem; }
+    .hidden { display: none; }
+    /* Dashboard */
+    .stats { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .stats div { flex: 1; background: #e0fbfc; padding: 1rem; border-radius: 8px; text-align: center; }
+    .stats div strong { display: block; font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .controls { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+    .controls button { flex: 1; padding: 0.75rem; font-size: 1rem; border: none; border-radius: 6px; cursor: pointer; }
+    #btn-start { background: #2ec4b6; color: #fff; }
+    #btn-stop { background: #ff6b6b; color: #fff; }
+    #btn-stop:disabled { background: #ddd; cursor: not-allowed; }
+    #btn-start:disabled { background: #ddd; cursor: not-allowed; }
+    /* Settings panel */
+    .settings-panel { background: #f0f8fb; padding: 1rem; border-radius: 8px; }
+    .settings-panel h3 { color: #005f73; margin-bottom: 0.75rem; }
+    /* Dashboard Preview */
+    .dashboard-preview h2 { color: #005f73; margin-bottom: 0.75rem; }
+    /* Gallery */
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap: 0.75rem; }
+    .gallery-grid img { width: 100%; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>タビノキロク</h1>
+    <nav>
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="gallery">Gallery</button>
+      <button class="tab-btn" data-tab="map">Map</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
+    </nav>
+    <div class="export">
+      <button onclick="shareSNS('twitter')">Twitter</button>
+      <button onclick="shareSNS('facebook')">Facebook</button>
+      <button onclick="downloadZIP()">ZIP</button>
+      <button onclick="issueURL()">公開URL</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Dashboard -->
+    <section id="dashboard">
+      <div class="stats">
+        <div><strong id="stat-time">00:00:00</strong><span>走行時間</span></div>
+        <div><strong id="stat-distance">0 km</strong><span>移動距離</span></div>
+        <div><strong id="stat-count">0 枚</strong><span>切り取った瞬間</span></div>
+      </div>
+      <div class="controls">
+        <button id="btn-start">記録開始</button>
+        <button id="btn-stop" disabled>記録停止</button>
+      </div>
+      <div class="settings-panel">
+        <h3>AIクリップ設定</h3>
+        <label>シーン選択条件：</label>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:0.5rem;">
+          <label><input type="checkbox" id="ai-indoor"> 室内シーンのみ</label>
+          <label><input type="checkbox" id="ai-outdoor"> 屋外シーン含む</label>
+          <label><input type="checkbox" id="ai-family"> 家族シーンフォーカス</label>
+          <label><input type="checkbox" id="ai-conversation"> 会話シーンを優先</label>
+        </div>
+        <p style="margin-top:0.5rem; font-size:0.85rem; color:#555;">※実際はAIが最適シーンを判断して切り取ります（プロトタイプ表現）</p>
+      </div>
+      <!-- Car Visual Diagram -->
+      <div class="car-visual" style="margin-top:1.5rem; text-align:center;">
+        <div style="font-size:1rem; font-weight:600; color:#333; margin-bottom:0.5rem;">車種：Tesla Model X</div>
+        <svg width="300" height="150" viewBox="0 0 300 150">
+          <!-- Car body -->
+          <rect x="50" y="30" width="200" height="90" rx="15" ry="15" fill="#ccc" stroke="#888" stroke-width="2" />
+          <!-- Wheels -->
+          <circle cx="80" cy="130" r="10" fill="#444" />
+          <circle cx="220" cy="130" r="10" fill="#444" />
+          <circle cx="80" cy="20" r="10" fill="#444" />
+          <circle cx="220" cy="20" r="10" fill="#444" />
+          <!-- Cameras -->
+          <circle cx="60" cy="30" r="8" fill="#2ec4b6" />
+          <circle cx="240" cy="30" r="8" fill="#2ec4b6" />
+          <circle cx="150" cy="15" r="8" fill="#2ec4b6" />
+          <circle cx="150" cy="125" r="8" fill="#2ec4b6" />
+          <!-- Labels -->
+          <text x="60" y="35" font-size="10" text-anchor="middle" fill="#fff">内</text>
+          <text x="240" y="35" font-size="10" text-anchor="middle" fill="#fff">外</text>
+          <text x="150" y="20" font-size="10" text-anchor="middle" fill="#fff">前</text>
+          <text x="150" y="130" font-size="10" text-anchor="middle" fill="#fff">後</text>
+        </svg>
+        <div style="font-size:0.9rem; color:#555; margin-top:0.5rem;">● マーク：搭載カメラ位置<br> 内=車内カメラ, 外=車外カメラ, 前/後=前後カメラ</div>
+      </div>
+    </section>
+    <!-- Dashboard Preview -->
+    <section class="dashboard-preview">
+      <h2>プレビュー（ダッシュボード）</h2>
+      <div class="gallery-grid" id="dashboard-gallery"></div>
+    </section>
+
+    <!-- Gallery -->
+    <section id="gallery" class="hidden">
+      <h2>旅の記録ギャラリー</h2>
+      <!-- Archive List -->
+      <div style="margin:1rem 0; padding:1rem; background:#e0fbfc; border-radius:6px;">
+        <h3 style="margin-bottom:0.5rem; color:#005f73;">これまでの旅一覧（アーカイブ）</h3>
+        <ul style="list-style:none; padding-left:0;">
+          <li style="margin-bottom:0.5rem;"><strong>2025/06/01 08:30</strong> - 15 枚 / 東京都新宿区</li>
+          <li style="margin-bottom:0.5rem;"><strong>2025/05/20 10:15</strong> - 22 枚 / 京都府京都市</li>
+          <li style="margin-bottom:0.5rem;"><strong>2025/04/10 07:50</strong> - 18 枚 / 山梨県富士吉田市</li>
+        </ul>
+        <div style="text-align:right; margin-top:0.75rem;">
+          <button onclick="openArchive()" style="background:#2ec4b6; color:#fff; padding:0.5rem 1rem; border:none; border-radius:4px; cursor:pointer;">アーカイブを開く</button>
+        </div>
+      </div>
+      <div class="gallery-grid" id="gallery-grid"></div>
+    </section>
+
+    <!-- Map -->
+    <section id="map" class="hidden">
+      <h2>経路マップ</h2>
+      <!-- Google Maps Embed -->
+      <div style="width:100%;height:450px;border-radius:8px;overflow:hidden;">
+        <iframe
+          width="100%"
+          height="100%"
+          frameborder="0"
+          style="border:0"
+          src="https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=Tokyo,Japan&zoom=12"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="settings" class="hidden">
+      <h2 style="font-size:1.5rem; color:#005f73; margin-bottom:1rem;">設定</h2>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+        <div style="background:#f0f8fb; padding:1rem; border-radius:8px;">
+          <h3 style="font-size:1.1rem; margin-bottom:0.75rem; color:#333;">アカウント</h3>
+          <div class="form-group">
+            <label for="user-name" style="font-weight:500; margin-bottom:0.25rem; display:block;">ユーザー名</label>
+            <input type="text" id="user-name" placeholder="例：nico ozaki" style="width:100%; padding:0.5rem; border:1px solid #ccc; border-radius:4px;" />
+          </div>
+          <div class="form-group">
+            <label for="user-email" style="font-weight:500; margin-bottom:0.25rem; display:block;">メールアドレス</label>
+            <input type="email" id="user-email" placeholder="example@example.com" style="width:100%; padding:0.5rem; border:1px solid #ccc; border-radius:4px;" />
+          </div>
+        </div>
+        <div style="background:#f0f8fb; padding:1rem; border-radius:8px;">
+          <h3 style="font-size:1.1rem; margin-bottom:0.75rem; color:#333;">通知 & 言語</h3>
+          <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
+            <input type="checkbox" id="notify-shoot" />
+            <label for="notify-shoot" style="margin:0;">撮影完了通知を受け取る</label>
+          </div>
+          <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
+            <input type="checkbox" id="notify-error" />
+            <label for="notify-error" style="margin:0;">エラー通知を受け取る</label>
+          </div>
+          <div class="form-group">
+            <label for="lang-select" style="font-weight:500; margin-bottom:0.25rem; display:block;">表示言語</label>
+            <select id="lang-select" style="width:100%; padding:0.5rem; border:1px solid #ccc; border-radius:4px;">
+              <option value="ja">日本語</option>
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="zh">中文</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:right; margin-top:1.5rem;">
+        <button class="save" onclick="saveSettings()" style="background:#2ec4b6; color:#fff; padding:0.75rem 1.5rem; border:none; border-radius:6px; font-size:1rem;">保存</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- Footer -->
+  <footer style="background:#005f73; color:#fff; padding:1rem 2rem; text-align:center; font-size:0.9rem;">
+    <div style="margin-bottom:0.5rem;">
+      <a href="#" style="color:#ffd60a; margin:0 0.5rem; text-decoration:none;">プライバシーポリシー</a>
+      <a href="#" style="color:#ffd60a; margin:0 0.5rem; text-decoration:none;">利用規約</a>
+      <a href="#" style="color:#ffd60a; margin:0 0.5rem; text-decoration:none;">運営会社</a>
+    </div>
+    <div>&copy; 2025 タビノキロク All Rights Reserved.</div>
+  </footer>
+</body>
+</html>
+  <script>
+    // Statistics updater
+    let buffer = [], clipInterval, timerId, startTime, clipCount = 0;
+    function updateStats() {
+      const elapsed = Date.now() - startTime;
+      const h = String(Math.floor(elapsed/3600000)).padStart(2,'0');
+      const m = String(Math.floor(elapsed%3600000/60000)).padStart(2,'0');
+      const s = String(Math.floor(elapsed%60000/1000)).padStart(2,'0');
+      document.getElementById('stat-time').textContent = `${h}:${m}:${s}`;
+      const distance = ((elapsed/1000)*0.02).toFixed(1);
+      document.getElementById('stat-distance').textContent = `${distance} km`;
+    }
+
+    // Tab Switch
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Hide all sections and preview
+        document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+        // Show selected tab content
+        const tab = btn.dataset.tab;
+        document.getElementById(tab).classList.remove('hidden');
+        // Show dashboard preview only for dashboard
+        const preview = document.querySelector('.dashboard-preview');
+        if (tab === 'dashboard') {
+          preview.classList.remove('hidden');
+        } else {
+          preview.classList.add('hidden');
+        }
+        // Update active button
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    document.getElementById('btn-stop').onclick = () => {
+      clearInterval(clipInterval);
+      clearInterval(timerId);
+      document.getElementById('btn-start').disabled = false;
+      document.getElementById('btn-stop').disabled = true;
+      // Switch to gallery tab
+      document.querySelector('[data-tab="gallery"]').click();
+      populateGallery();
+    };
+
+    function populateGallery() {
+      const gallery = document.getElementById('gallery-grid');
+      gallery.innerHTML = '';
+      buffer.forEach(url => {
+        const img = document.createElement('img'); img.src = url; img.alt = 'クリップ切り取り';
+        gallery.appendChild(img);
+      });
+    }
+
+    // Map Init
+    const map = L.map('map').setView([35.6895, 139.6917], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution: '© OpenStreetMap' }).addTo(map);
+
+    // SNS & Export
+    const shareSNS = to => alert(`${to}でシェア（プロトタイプ）`);
+    const downloadZIP = () => alert('ZIPダウンロード（プロトタイプ）');
+    const issueURL = () => prompt('公開用URL','https://tabinokiroku.example.com/xxxxx');
+
+    // Save Settings
+    const saveSettings = () => alert('設定を保存しました');
+
+    // Record Start Handler
+    document.getElementById('btn-start').onclick = () => {
+      buffer = [];
+      clipCount = 0;
+      startTime = Date.now();
+      timerId = setInterval(updateStats, 1000);
+      clipInterval = setInterval(() => {
+        const url = `https://picsum.photos/300?blur&sig=${Date.now()}`;
+        clipCount++;
+        buffer.push(url);
+        document.getElementById('stat-count').textContent = `${clipCount} 枚`;
+        document.getElementById('dashboard-gallery').appendChild(Object.assign(document.createElement('img'), {src:url}));
+      }, 15000);
+      document.getElementById('btn-start').disabled = true;
+      document.getElementById('btn-stop').disabled = false;
+    };
+  </script>
