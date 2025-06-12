@@ -128,7 +128,13 @@
     footer { background:var(--card-bg); text-align:center; padding:1rem; font-size:0.8rem;
       border-top:1px solid var(--border); margin-top:auto;
     }
-    @media(max-width:600px) { form { grid-template-columns:1fr; } .charts { grid-template-columns:1fr; } }
+    @media(max-width:600px) {
+      header {
+        padding: 1rem 4rem 1rem 2rem;
+      }
+      form { grid-template-columns:1fr; }
+      .charts { grid-template-columns:1fr; }
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
