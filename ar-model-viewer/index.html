@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#317EFB"/>
+    <!-- キャッシュを無効化するためのメタタグ -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>3D CAD AR アプリケーション</title>
+    <link rel="stylesheet" href="styles.css?v=20250515">
+    <link rel="manifest" href="manifest.json?v=20250515">
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loading-container">
+            <h1>3D CAD AR アプリ</h1>
+            <p>カメラへのアクセスを許可してください。</p>
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <div id="instructions">
+        <p>マーカーにカメラを向けてください</p>
+        <button id="close-instructions">閉じる</button>
+    </div>
+
+    <a-scene embedded arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+             renderer="logarithmicDepthBuffer: true; antialias: true; precision: mediump;"
+             vr-mode-ui="enabled: false">
+        <!-- カメラ -->
+        <a-entity camera></a-entity>
+        
+        <!-- デフォルトの3Dモデル（赤い箱） -->
+         <a-marker preset="hiro">
+            <a-box position="0 0.5 0" material="color: red;"></a-box>
+         </a-marker>
+         
+    </a-scene>
+
+    <script src="app.js?v=20250515"></script>
+    <script>
+        // サービスワーカーの登録と更新
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // 既存のサービスワーカーを強制的に更新
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    for(let registration of registrations) {
+                        registration.update();
+                    }
+                });
+                
+                navigator.serviceWorker.register('sw.js?v=20250515')
+                    .then(reg => {
+                        console.log('Service Worker registered', reg);
+                        // サービスワーカーの更新をチェック
+                        reg.onupdatefound = function() {
+                            const installingWorker = reg.installing;
+                            installingWorker.onstatechange = function() {
+                                if (installingWorker.state === 'installed') {
+                                    if (navigator.serviceWorker.controller) {
+                                        console.log('新しいサービスワーカーがインストールされました');
+                                        // 新しいバージョンがインストールされたらページをリロード
+                                        window.location.reload();
+                                    }
+                                }
+                            };
+                        }
+                    })
+                    .catch(err => console.log('Service Worker registration failed', err));
+            });
+        }
+    </script>
+</body>
+</html>
