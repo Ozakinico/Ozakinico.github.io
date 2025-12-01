@@ -1,20 +1,35 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+    <meta name="description" content="Tweet Web App">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- GitHub Pages のサブパス対応 -->
+    <base href="/tweet/">
+
     <title>Tweet App</title>
-    <meta name="description" content="Tweet Test App" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="icon" type="image/png" href="favicon.png">
 
-    <script defer src="flutter.js"></script>
-    <script defer src="main.js"></script>
+    <script>
+      window.addEventListener('load', function(ev) {
+        _flutter.loader.loadEntrypoint({
+          entrypointUrl: "main.dart.js",
+          onEntrypointLoaded: function(engineInitializer) {
+            engineInitializer.initializeEngine().then(function(appRunner) {
+              appRunner.runApp();
+            });
+          }
+        });
+      });
+    </script>
   </head>
 
   <body>
-    <h1>Tweet App</h1>
-    <p>ここにFlutter Webの画面が出るようになります。</p>
+    <script src="flutter.js" defer></script>
+    <script src="main.dart.js" defer></script>
   </body>
 </html>
