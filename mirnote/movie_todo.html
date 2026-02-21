@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>映画Todoリスト</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .task {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+    }
+    .task.completed .title {
+      text-decoration: line-through;
+      color: gray;
+    }
+    .task-details {
+      flex: 1;
+    }
+    .task-actions button {
+      margin-left: 5px;
+    }
+    .light {
+      background-color: #fff;
+      color: #000;
+    }
+    .dark {
+      background-color: #222;
+      color: #eee;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body class="light">
+  <div class="container">
+    <h1>映画Todoリスト</h1>
+    <div>
+      <label>タイトル: <input type="text" id="title"></label>
+      <label>ジャンル: <input type="text" id="genre"></label>
+      <button id="addBtn">追加</button>
+      <button id="modeToggle">ダークモード</button>
+    </div>
+    <ul id="taskList"></ul>
+  </div>
+<script>
+  const titleInput = document.getElementById('title');
+  const genreInput = document.getElementById('genre');
+  const taskList = document.getElementById('taskList');
+  const modeToggle = document.getElementById('modeToggle');
+
+  let tasks = JSON.parse(localStorage.getItem('movieTasks')) || [];
+  let darkMode = localStorage.getItem('darkMode') === 'true';
+  document.body.className = darkMode ? 'dark' : 'light';
+  modeToggle.textContent = darkMode ? 'ライトモード' : 'ダークモード';
+
+  function saveTasks() {
+    localStorage.setItem('movieTasks', JSON.stringify(tasks));
+  }
+
+  function render() {
+    taskList.innerHTML = '';
+    tasks.forEach((task, index) => {
+      const li = document.createElement('li');
+      li.className = 'task' + (task.completed ? ' completed' : '');
+      const details = document.createElement('div');
+      details.className = 'task-details';
+      details.innerHTML = `<span class="title">${task.title}</span> - <span class="genre">${task.genre}</span>`;
+
+      const actions = document.createElement('div');
+      actions.className = 'task-actions';
+      const toggleBtn = document.createElement('button');
+      toggleBtn.textContent = task.completed ? '未完了にする' : '完了にする';
+      toggleBtn.addEventListener('click', () => {
+        task.completed = !task.completed;
+        saveTasks();
+        render();
+      });
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = '削除';
+      deleteBtn.addEventListener('click', () => {
+        tasks.splice(index, 1);
+        saveTasks();
+        render();
+      });
+      actions.appendChild(toggleBtn);
+      actions.appendChild(deleteBtn);
+
+      li.appendChild(details);
+      li.appendChild(actions);
+      taskList.appendChild(li);
+    });
+  }
+
+  document.getElementById('addBtn').addEventListener('click', () => {
+    const title = titleInput.value.trim();
+    const genre = genreInput.value.trim();
+    if (!title) return;
+    tasks.push({ title, genre, completed: false });
+    titleInput.value = '';
+    genreInput.value = '';
+    saveTasks();
+    render();
+  });
+
+  modeToggle.addEventListener('click', () => {
+    darkMode = !darkMode;
+    document.body.className = darkMode ? 'dark' : 'light';
+    modeToggle.textContent = darkMode ? 'ライトモード' : 'ダークモード';
+    localStorage.setItem('darkMode', darkMode);
+  });
+
+  render();
+</script>
+</body>
+</html>
