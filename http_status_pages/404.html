@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>404 Not Found</title>
+<style>
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,#0f172a,#1e293b);
+  color:white;
+  font-family:sans-serif;
+}
+.card{
+  text-align:center;
+  padding:40px;
+  border:2px solid #94a3b8;
+  border-radius:24px;
+  background:rgba(255,255,255,.08);
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+.code{
+  font-size:96px;
+  font-weight:900;
+  letter-spacing:6px;
+}
+.face{
+  font-size:80px;
+  margin:20px 0;
+  animation:float 2s infinite ease-in-out;
+}
+h1{
+  margin:0;
+  font-size:28px;
+}
+p{
+  color:#cbd5e1;
+  line-height:1.8;
+}
+a{
+  color:#facc15;
+  text-decoration:none;
+  font-weight:bold;
+}
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-12px)}
+}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="code">404</div>
+    <div class="face">🧭</div>
+    <h1>ページ、迷子になりました。</h1>
+    <p>
+      探していたページは見つかりませんでした。<br>
+      URLが間違っているか、どこかへ旅に出たようです。
+    </p>
+    <a href="./">トップへ戻る</a>
+  </div>
+</body>
+</html>
